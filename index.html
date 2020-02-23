@@ -37,9 +37,10 @@
 <table id="data_table" style="display: none">
     <thead>
     <tr>
-        <th>Place</th>
-        <th>Name</th>
-        <th>Likes</th>
+        <th>Місце</th>
+        <th>Ім'я</th>
+        <th>Малюнок</th>
+        <th>Подобається</th>
     </tr>
     </thead>
     <tbody id="table_body">
@@ -72,7 +73,8 @@
                     return a;
                 }, [])
                 .sort((a, b) => b.likes - a.likes)
-                .reduce((prev, current, i) => prev + `<tr><td>${i + 1}</td><td>${current.name}</td><td>${current.likes}</td></tr>`, "");
+                .reduce((prev, current, i) =>
+                    prev + `<tr><td>${i + 1}</td><td>${current.name}</td><td><a target="_blank" href="https://dreamcar.toyota.ua/participants-page/${current.id}">${current.jobTitle}</a></td><td>${current.likes}</td></tr>`, "");
             document.getElementById("loader").style.display = "none";
             document.getElementById("data_table").style.display = "table";
         });
