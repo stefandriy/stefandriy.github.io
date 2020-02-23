@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Toyota Challenge</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        table {
+            margin: auto;
+            min-width: 50%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        #loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            margin-top: -100px;
+            margin-left: -100px;
+        }
+    </style>
+</head>
+<body>
+<img id="loader" src="https://thumbs.gfycat.com/ConventionalOblongFairybluebird-small.gif" alt="">
+<table id="data_table" style="display: none">
+    <thead>
+    <tr>
+        <th>Place</th>
+        <th>Name</th>
+        <th>Likes</th>
+    </tr>
+    </thead>
+    <tbody id="table_body">
+    </tbody>
+</table>
+</body>
+<script>
+    var urls = [];
+
+    for (let i = 1; i < 190; i++) {
+        urls.push('https://api.dreamcar.toyota.ua/v1/participants-page/by-category?category=category2&page=' + i);
+    }
+
+    var doRequest = url => new Promise(resolve => {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                resolve(JSON.parse(xhr.responseText));
+            }
+        };
+        xhr.send();
+    });
+
+    Promise.all(urls.map(doRequest))
+        .then(responses => {
+            document.getElementById("table_body").innerHTML = responses.map(response => response.participants)
+                .reduce((a, b) => {
+                    a.push(...b);
+                    return a;
+                }, [])
+                .sort((a, b) => b.likes - a.likes)
+                .reduce((prev, current, i) => prev + `<tr><td>${i + 1}</td><td>${current.name}</td><td>${current.likes}</td></tr>`, "");
+            document.getElementById("loader").style.display = "none";
+            document.getElementById("data_table").style.display = "table";
+        });
+</script>
+</html>
