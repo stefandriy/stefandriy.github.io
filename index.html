@@ -1,5 +1,12 @@
 <html>
-<head></head>
+<head>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
+</head>
 <body>
 <script>
     var YOUR_CLIENT_ID = '114777309846-3gl5i5navdvpr0se5c99g6pceaplceo3.apps.googleusercontent.com';
@@ -21,6 +28,27 @@
             console.log('State mismatch. Possible CSRF attack');
         }
     }
+
+    const arr = [[
+            "01.02.2025 10:00:00",
+            "Активи:Картка:Андрій:BMO",
+            "-66,38",
+            "CAD",
+            "Витрати:Продукти",
+            "1 906,10",
+            "UAH",
+            "мʼясо, арахісова паста, немолоко"
+        ],
+        [
+            "01.02.2025 10:00:00",
+            "Активи:Картка:Андрій:PC",
+            "-22,73",
+            "CAD",
+            "Витрати:Алкоголь",
+            "652,69",
+            "UAH",
+            "вино"
+        ]];
 
     function printTable(rows) {
         const table = document.createElement('table');
@@ -47,15 +75,15 @@
         thr.appendChild(description);
         table.appendChild(thr);
 
-        for (const row in rows) {
+        rows.forEach(row => {
             const tr = document.createElement('tr');
-            for (const data in row) {
-                const td = document.createElement('th');
-                currency.innerHTML = data;
+            row.forEach(data => {
+                const td = document.createElement('td');
+                td.innerHTML = data;
                 tr.appendChild(td);
-            }
-            table.appendChild(tr)
-        }
+            });
+            table.appendChild(tr);
+        })
 
         // Add form to page and submit it to open the OAuth 2.0 endpoint.
         document.body.appendChild(table);
