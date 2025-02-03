@@ -29,27 +29,6 @@
         }
     }
 
-    const arr = [[
-            "01.02.2025 10:00:00",
-            "Активи:Картка:Андрій:BMO",
-            "-66,38",
-            "CAD",
-            "Витрати:Продукти",
-            "1 906,10",
-            "UAH",
-            "мʼясо, арахісова паста, немолоко"
-        ],
-        [
-            "01.02.2025 10:00:00",
-            "Активи:Картка:Андрій:PC",
-            "-22,73",
-            "CAD",
-            "Витрати:Алкоголь",
-            "652,69",
-            "UAH",
-            "вино"
-        ]];
-
     function printTable(rows) {
         const table = document.createElement('table');
         const thr = document.createElement('tr');
@@ -122,7 +101,7 @@
                 xhr.onreadystatechange = function (e) {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         console.log(xhr.response);
-                        printTable(xhr.response.values);
+                        printTable(JSON.parse(xhr.response).values);
                     } else if (xhr.readyState === 4 && xhr.status === 401) {
                         // Token invalid, so prompt for user permission.
                         oauth2SignIn();
