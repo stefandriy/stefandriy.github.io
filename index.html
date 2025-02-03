@@ -1,82 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Toyota Challenge</title>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-        }
-
-        table {
-            margin: auto;
-            min-width: 50%;
-            border-collapse: collapse;
-        }
-
-        table, th, td {
-            border: 1px solid black;
-        }
-
-        #loader {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 200px;
-            height: 200px;
-            margin-top: -100px;
-            margin-left: -100px;
-        }
-    </style>
-</head>
-<body>
-<img id="loader" src="https://thumbs.gfycat.com/ConventionalOblongFairybluebird-small.gif" alt="">
-<table id="data_table" style="display: none">
-    <thead>
-    <tr>
-        <th>Місце</th>
-        <th>Ім'я</th>
-        <th>Малюнок</th>
-        <th>Подобається</th>
-    </tr>
-    </thead>
-    <tbody id="table_body">
-    </tbody>
-</table>
-</body>
+<html><head></head><body>
 <script>
-    var urls = [];
+    var YOUR_CLIENT_ID = '114777309846-3gl5i5navdvpr0se5c99g6pceaplceo3.apps.googleusercontent.com';
+    var YOUR_REDIRECT_URI = 'https://stefandriy.github.io';
 
-    for (let i = 1; i < 190; i++) {
-        urls.push('https://api.dreamcar.toyota.ua/v1/participants-page/by-category?category=category2&page=' + i);
+    // Parse query string to see if page request is coming from OAuth 2.0 server.
+    var fragmentString = location.hash.substring(1);
+    var params = {};
+    var regex = /([^&=]+)=([^&]*)/g, m;
+    while (m = regex.exec(fragmentString)) {
+        params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+    }
+    if (Object.keys(params).length > 0 && params['state']) {
+        if (params['state'] == localStorage.getItem('state')) {
+            localStorage.setItem('oauth2-test-params', JSON.stringify(params) );
+
+            trySampleRequest();
+        } else {
+            console.log('State mismatch. Possible CSRF attack');
+        }
     }
 
-    var doRequest = url => new Promise(resolve => {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                resolve(JSON.parse(xhr.responseText));
-            }
-        };
-        xhr.send();
-    });
+    // Function to generate a random state value
+    function generateCryptoRandomState() {
+        const randomValues = new Uint32Array(2);
+        window.crypto.getRandomValues(randomValues);
 
-    Promise.all(urls.map(doRequest))
-        .then(responses => {
-            document.getElementById("table_body").innerHTML = responses.map(response => response.participants)
-                .reduce((a, b) => {
-                    a.push(...b);
-                    return a;
-                }, [])
-                .sort((a, b) => b.likes - a.likes)
-                .reduce((prev, current, i) =>
-                    prev + `<tr><td>${i + 1}</td><td>${current.name}</td><td><a target="_blank" href="https://dreamcar.toyota.ua/participants-page/${current.id}">${current.jobTitle}</a></td><td>${current.likes}</td></tr>`, "");
-            document.getElementById("loader").style.display = "none";
-            document.getElementById("data_table").style.display = "table";
-        });
+        // Encode as UTF-8
+        const utf8Encoder = new TextEncoder();
+        const utf8Array = utf8Encoder.encode(
+            String.fromCharCode.apply(null, randomValues)
+        );
+
+        // Base64 encode the UTF-8 data
+        return btoa(String.fromCharCode.apply(null, utf8Array))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+    }
+
+    // If there's an access token, try an API request.
+    // Otherwise, start OAuth 2.0 flow.
+    function trySampleRequest() {
+        var params = JSON.parse(localStorage.getItem('oauth2-test-params'));
+        if (params && params['access_token']) {
+            // User authorized the request. Now, check which scopes were granted.
+            if (params['scope'].includes('https://www.googleapis.com/auth/drive.metadata.readonly')) {
+                // User authorized read-only Drive activity permission.
+                // Calling the APIs, etc.
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET',
+                    'https://www.googleapis.com/drive/v3/about?fields=user&' +
+                    'access_token=' + params['access_token']);
+                xhr.onreadystatechange = function (e) {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        console.log(xhr.response);
+                    } else if (xhr.readyState === 4 && xhr.status === 401) {
+                        // Token invalid, so prompt for user permission.
+                        oauth2SignIn();
+                    }
+                };
+                xhr.send(null);
+            }
+            else {
+                // User didn't authorize read-only Drive activity permission.
+                // Update UX and application accordingly
+                console.log('User did not authorize read-only Drive activity permission.');
+            }
+
+            // Check if user authorized Calendar read permission.
+            if (params['scope'].includes('https://www.googleapis.com/auth/calendar.readonly')) {
+                // User authorized Calendar read permission.
+                // Calling the APIs, etc.
+                console.log('User authorized Calendar read permission.');
+            }
+            else {
+                // User didn't authorize Calendar read permission.
+                // Update UX and application accordingly
+                console.log('User did not authorize Calendar read permission.');
+            }
+        } else {
+            oauth2SignIn();
+        }
+    }
+
+    /*
+     * Create form to request access token from Google's OAuth 2.0 server.
+     */
+    function oauth2SignIn() {
+        // create random state value and store in local storage
+        var state = generateCryptoRandomState();
+        localStorage.setItem('state', state);
+
+        // Google's OAuth 2.0 endpoint for requesting an access token
+        var oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+        // Create element to open OAuth 2.0 endpoint in new window.
+        var form = document.createElement('form');
+        form.setAttribute('method', 'GET'); // Send as a GET request.
+        form.setAttribute('action', oauth2Endpoint);
+
+        // Parameters to pass to OAuth 2.0 endpoint.
+        var params = {'client_id': YOUR_CLIENT_ID,
+            'redirect_uri': YOUR_REDIRECT_URI,
+            'scope': 'https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/calendar.readonly',
+            'state': state,
+            'include_granted_scopes': 'true',
+            'response_type': 'token'};
+
+        // Add form parameters as hidden input values.
+        for (var p in params) {
+            var input = document.createElement('input');
+            input.setAttribute('type', 'hidden');
+            input.setAttribute('name', p);
+            input.setAttribute('value', params[p]);
+            form.appendChild(input);
+        }
+
+        // Add form to page and submit it to open the OAuth 2.0 endpoint.
+        document.body.appendChild(form);
+        form.submit();
+    }
 </script>
-</html>
+
+<button onclick="trySampleRequest();">Try sample request</button>
+</body></html>
