@@ -50,10 +50,8 @@
                 // User authorized Sheets activity permission.
                 // Calling the APIs, etc.
                 var xhr = new XMLHttpRequest();
-                xhr.open('GET',
-                    'https://sheets.googleapis.com/v4/spreadsheets/1yxeNxpxbso3vvCDeDjhoqSz3FLvVGdKXx8x2usb5sRM/values/'
-                    + 'A3:H100&'
-                    + 'access_token=' + params['access_token']);
+                xhr.open('GET', 'https://sheets.googleapis.com/v4/spreadsheets/1yxeNxpxbso3vvCDeDjhoqSz3FLvVGdKXx8x2usb5sRM/values/A3:H100&');
+                xhr.setRequestHeader('Authorization', `Bearer ${params['access_token']}`)
                 xhr.onreadystatechange = function (e) {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         console.log(xhr.response);
