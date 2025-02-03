@@ -22,6 +22,45 @@
         }
     }
 
+    function printTable(rows) {
+        const table = document.createElement('table');
+        const thr = document.createElement('tr');
+        const date = document.createElement('th');
+        date.innerHTML = 'Date';
+        const from = document.createElement('th');
+        from.innerHTML = 'From';
+        const to = document.createElement('th');
+        to.innerHTML = 'To';
+        const amount = document.createElement('th');
+        amount.innerHTML = 'Amount';
+        const currency = document.createElement('th');
+        currency.innerHTML = 'Currency';
+        const description = document.createElement('th');
+        currency.innerHTML = 'Description';
+        thr.appendChild(date);
+        thr.appendChild(from);
+        thr.appendChild(amount);
+        thr.appendChild(currency);
+        thr.appendChild(to);
+        thr.appendChild(amount);
+        thr.appendChild(currency);
+        thr.appendChild(description);
+        table.appendChild(thr);
+
+        for (const row in rows) {
+            const tr = document.createElement('tr');
+            for (const data in row) {
+                const td = document.createElement('th');
+                currency.innerHTML = data;
+                tr.appendChild(td);
+            }
+            table.appendChild(tr)
+        }
+
+        // Add form to page and submit it to open the OAuth 2.0 endpoint.
+        document.body.appendChild(table);
+    }
+
     // Function to generate a random state value
     function generateCryptoRandomState() {
         const randomValues = new Uint32Array(2);
@@ -50,11 +89,12 @@
                 // User authorized Sheets activity permission.
                 // Calling the APIs, etc.
                 var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://sheets.googleapis.com/v4/spreadsheets/1yxeNxpxbso3vvCDeDjhoqSz3FLvVGdKXx8x2usb5sRM/values/A3:H100');
+                xhr.open('GET', 'https://sheets.googleapis.com/v4/spreadsheets/1yxeNxpxbso3vvCDeDjhoqSz3FLvVGdKXx8x2usb5sRM/values/A3:H');
                 xhr.setRequestHeader('Authorization', `Bearer ${params['access_token']}`)
                 xhr.onreadystatechange = function (e) {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         console.log(xhr.response);
+                        printTable(xhr.response.values);
                     } else if (xhr.readyState === 4 && xhr.status === 401) {
                         // Token invalid, so prompt for user permission.
                         oauth2SignIn();
