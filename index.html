@@ -1,4 +1,6 @@
-<html><head></head><body>
+<html>
+<head></head>
+<body>
 <script>
     var YOUR_CLIENT_ID = '114777309846-3gl5i5navdvpr0se5c99g6pceaplceo3.apps.googleusercontent.com';
     var YOUR_REDIRECT_URI = 'https://stefandriy.github.io';
@@ -12,7 +14,7 @@
     }
     if (Object.keys(params).length > 0 && params['state']) {
         if (params['state'] == localStorage.getItem('state')) {
-            localStorage.setItem('oauth2-test-params', JSON.stringify(params) );
+            localStorage.setItem('oauth2-test-params', JSON.stringify(params));
 
             trySampleRequest();
         } else {
@@ -44,13 +46,14 @@
         var params = JSON.parse(localStorage.getItem('oauth2-test-params'));
         if (params && params['access_token']) {
             // User authorized the request. Now, check which scopes were granted.
-            if (params['scope'].includes('https://www.googleapis.com/auth/drive.metadata.readonly')) {
-                // User authorized read-only Drive activity permission.
+            if (params['scope'].includes('https://www.googleapis.com/auth/spreadsheets')) {
+                // User authorized Sheets activity permission.
                 // Calling the APIs, etc.
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET',
-                    'https://www.googleapis.com/drive/v3/about?fields=user&' +
-                    'access_token=' + params['access_token']);
+                    'https://sheets.googleapis.com/v4/spreadsheets/1yxeNxpxbso3vvCDeDjhoqSz3FLvVGdKXx8x2usb5sRM/values/'
+                    + 'A3:H100&'
+                    + 'access_token=' + params['access_token']);
                 xhr.onreadystatechange = function (e) {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         console.log(xhr.response);
@@ -60,23 +63,10 @@
                     }
                 };
                 xhr.send(null);
-            }
-            else {
-                // User didn't authorize read-only Drive activity permission.
+            } else {
+                // User didn't authorize Sheets activity permission.
                 // Update UX and application accordingly
-                console.log('User did not authorize read-only Drive activity permission.');
-            }
-
-            // Check if user authorized Calendar read permission.
-            if (params['scope'].includes('https://www.googleapis.com/auth/calendar.readonly')) {
-                // User authorized Calendar read permission.
-                // Calling the APIs, etc.
-                console.log('User authorized Calendar read permission.');
-            }
-            else {
-                // User didn't authorize Calendar read permission.
-                // Update UX and application accordingly
-                console.log('User did not authorize Calendar read permission.');
+                console.log('User did not authorize Sheets activity permission.');
             }
         } else {
             oauth2SignIn();
@@ -100,12 +90,14 @@
         form.setAttribute('action', oauth2Endpoint);
 
         // Parameters to pass to OAuth 2.0 endpoint.
-        var params = {'client_id': YOUR_CLIENT_ID,
+        var params = {
+            'client_id': YOUR_CLIENT_ID,
             'redirect_uri': YOUR_REDIRECT_URI,
-            'scope': 'https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/calendar.readonly',
+            'scope': 'https://www.googleapis.com/auth/spreadsheets',
             'state': state,
             'include_granted_scopes': 'true',
-            'response_type': 'token'};
+            'response_type': 'token'
+        };
 
         // Add form parameters as hidden input values.
         for (var p in params) {
@@ -123,4 +115,5 @@
 </script>
 
 <button onclick="trySampleRequest();">Try sample request</button>
-</body></html>
+</body>
+</html>
