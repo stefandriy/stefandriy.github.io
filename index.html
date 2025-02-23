@@ -1,168 +1,19 @@
-<html>
-<head>
-    <style>
-        table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
-        }
-    </style>
-</head>
-<body>
-<script>
-    var YOUR_CLIENT_ID = '114777309846-3gl5i5navdvpr0se5c99g6pceaplceo3.apps.googleusercontent.com';
-    var YOUR_REDIRECT_URI = 'https://stefandriy.github.io';
-
-    // Parse query string to see if page request is coming from OAuth 2.0 server.
-    var fragmentString = location.hash.substring(1);
-    var params = {};
-    var regex = /([^&=]+)=([^&]*)/g, m;
-    while (m = regex.exec(fragmentString)) {
-        params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
-    }
-    if (Object.keys(params).length > 0 && params['state']) {
-        if (params['state'] == localStorage.getItem('state')) {
-            localStorage.setItem('oauth2-test-params', JSON.stringify(params));
-
-            trySampleRequest();
-        } else {
-            console.log('State mismatch. Possible CSRF attack');
-        }
-    }
-
-    function printTable(rows) {
-        const table = document.createElement('table');
-        const thr = document.createElement('tr');
-        const th1 = document.createElement('th');
-        th1.innerHTML = 'Date';
-        const th2 = document.createElement('th');
-        th2.innerHTML = 'From';
-        const th3 = document.createElement('th');
-        th3.innerHTML = 'Amount';
-        const th4 = document.createElement('th');
-        th4.innerHTML = 'Currency';
-        const th5 = document.createElement('th');
-        th5.innerHTML = 'To';
-        const th6 = document.createElement('th');
-        th6.innerHTML = 'Amount';
-        const th7 = document.createElement('th');
-        th7.innerHTML = 'Currency';
-        const th8 = document.createElement('th');
-        th8.innerHTML = 'Description';
-        thr.appendChild(th1);
-        thr.appendChild(th2);
-        thr.appendChild(th3);
-        thr.appendChild(th4);
-        thr.appendChild(th5);
-        thr.appendChild(th6);
-        thr.appendChild(th7);
-        thr.appendChild(th8);
-        table.appendChild(thr);
-
-        rows.forEach(row => {
-            const tr = document.createElement('tr');
-            row.forEach(data => {
-                const td = document.createElement('td');
-                td.innerHTML = data;
-                tr.appendChild(td);
-            });
-            table.appendChild(tr);
-        })
-
-        // Add form to page and submit it to open the OAuth 2.0 endpoint.
-        document.body.appendChild(table);
-    }
-
-    // Function to generate a random state value
-    function generateCryptoRandomState() {
-        const randomValues = new Uint32Array(2);
-        window.crypto.getRandomValues(randomValues);
-
-        // Encode as UTF-8
-        const utf8Encoder = new TextEncoder();
-        const utf8Array = utf8Encoder.encode(
-            String.fromCharCode.apply(null, randomValues)
-        );
-
-        // Base64 encode the UTF-8 data
-        return btoa(String.fromCharCode.apply(null, utf8Array))
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=+$/, '');
-    }
-
-    // If there's an access token, try an API request.
-    // Otherwise, start OAuth 2.0 flow.
-    function trySampleRequest() {
-        var params = JSON.parse(localStorage.getItem('oauth2-test-params'));
-        if (params && params['access_token']) {
-            // User authorized the request. Now, check which scopes were granted.
-            if (params['scope'].includes('https://www.googleapis.com/auth/spreadsheets')) {
-                // User authorized Sheets activity permission.
-                // Calling the APIs, etc.
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://sheets.googleapis.com/v4/spreadsheets/1yxeNxpxbso3vvCDeDjhoqSz3FLvVGdKXx8x2usb5sRM/values/A3:H');
-                xhr.setRequestHeader('Authorization', `Bearer ${params['access_token']}`)
-                xhr.onreadystatechange = function (e) {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        console.log(xhr.response);
-                        printTable(JSON.parse(xhr.response).values);
-                    } else if (xhr.readyState === 4 && xhr.status === 401) {
-                        // Token invalid, so prompt for user permission.
-                        oauth2SignIn();
-                    }
-                };
-                xhr.send(null);
-            } else {
-                // User didn't authorize Sheets activity permission.
-                // Update UX and application accordingly
-                console.log('User did not authorize Sheets activity permission.');
-            }
-        } else {
-            oauth2SignIn();
-        }
-    }
-
-    /*
-     * Create form to request access token from Google's OAuth 2.0 server.
-     */
-    function oauth2SignIn() {
-        // create random state value and store in local storage
-        var state = generateCryptoRandomState();
-        localStorage.setItem('state', state);
-
-        // Google's OAuth 2.0 endpoint for requesting an access token
-        var oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
-
-        // Create element to open OAuth 2.0 endpoint in new window.
-        var form = document.createElement('form');
-        form.setAttribute('method', 'GET'); // Send as a GET request.
-        form.setAttribute('action', oauth2Endpoint);
-
-        // Parameters to pass to OAuth 2.0 endpoint.
-        var params = {
-            'client_id': YOUR_CLIENT_ID,
-            'redirect_uri': YOUR_REDIRECT_URI,
-            'scope': 'https://www.googleapis.com/auth/spreadsheets',
-            'state': state,
-            'include_granted_scopes': 'true',
-            'response_type': 'token'
-        };
-
-        // Add form parameters as hidden input values.
-        for (var p in params) {
-            var input = document.createElement('input');
-            input.setAttribute('type', 'hidden');
-            input.setAttribute('name', p);
-            input.setAttribute('value', params[p]);
-            form.appendChild(input);
-        }
-
-        // Add form to page and submit it to open the OAuth 2.0 endpoint.
-        document.body.appendChild(form);
-        form.submit();
-    }
-</script>
-
-<button onclick="trySampleRequest();">Try sample request</button>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+    />
+    <title>GShit 2.0</title>
+    <script type="module" crossorigin src="/assets/index-CFouB5zj.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>
